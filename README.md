@@ -44,7 +44,7 @@
 ### step1: Data Design
     Before writing any code, let's think about the information a single task needs.
 
-## For example, a task might have:
+#### For example, a task might have:
 - id — a unique identifier
 - title — what needs to be done
 - description — extra details
