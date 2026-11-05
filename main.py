@@ -1,13 +1,11 @@
 import json
 import os
 from datetime import datetime
+from clear_terminals import clear_terminal
 
 FILENAME = "tasks.json"
 
-# ==========================================
-# FILE HANDLING & DATA HELPERS
-# ==========================================
-
+# file handling and data helpers
 def load_tasks():
     """Reads tasks from tasks.json file. Returns empty list if file doesn't exist."""
     if not os.path.exists(FILENAME):
@@ -29,10 +27,7 @@ def get_next_id(tasks):
         return 1
     return max(task["id"] for task in tasks) + 1
 
-# ==========================================
-# CORE TASK FUNCTIONS (CRUD)
-# ==========================================
-
+#  core task management functions
 def add_task(tasks):
     """Adds a new task to the list."""
     print("\n--- ADD NEW TASK ---")
@@ -45,27 +40,28 @@ def add_task(tasks):
 
     # 2. Priority Input Validation
     print("Select Priority: 1) Low  2) Medium  3) High")
-    p_choice = input("Choice (1-3) [Default: 2]: ").strip()
-    priorities = {"1": "Low", "2": "Medium", "3": "High"}
-    priority = priorities.get(p_choice, "Medium")
+    while True:
+        p_choice = input("Choice (1-3): ").strip()
+        if p_choice in ["1", "2", "3"]:
+            break
+        print("Invalid choice. Please select 1, 2, or 3.")
 
     # 3. Due Date Validation
-    due_date = input("Enter due date (YYYY-MM-DD) or press Enter to skip: ").strip()
-    if due_date:
+    while True:
+        due_date = input("Enter due date (YYYY-MM-DD): ").strip()
+        if not due_date:
+            print("invalid date format! enter a valid date in YYYY-MM-DD format.")
+            continue
         try:
-            valid_dt = datetime.strptime(due_date, "%Y-%m-%d")
-            due_date = valid_dt.strftime("%Y-%m-%d")
+            datetime.strptime(due_date, "%Y-%m-%d")
+            break
         except ValueError:
-            print("Invalid date format! Skipping due date.")
-            due_date = "N/A"
-    else:
-        due_date = "N/A"
+            print("Invalid date format! Please enter a valid date in YYYY-MM-DD format.")
 
-    # 4. Construct Task Dictionary
     new_task = {
         "id": get_next_id(tasks),
         "title": title,
-        "priority": priority,
+        "priority": "Low" if p_choice == "1" else "Medium" if p_choice == "2" else "High",
         "due_date": due_date,
         "completed": False
     }
@@ -84,10 +80,10 @@ def view_tasks(tasks, show_completed=False):
         print("No tasks found.")
         return
 
-    print(f"{'ID':<4} | {'Priority':<8} | {'Due Date':<12} | {'Title'}")
+    print(f"{'ID':<4} | {'Title':<20} | {'Priority':<8} | {'Due Date':<12}")
     print("-" * 50)
     for t in filtered:
-        print(f"{t['id']:<4} | {t['priority']:<8} | {t['due_date']:<12} | {t['title']}")
+        print(f"{t['id']:<4} | {t['title']:<20} | {t['priority']:<8} | {t['due_date']:<12}")
 
 def mark_completed(tasks):
     """Marks a selected task as done."""
@@ -106,6 +102,14 @@ def mark_completed(tasks):
 
 def edit_task(tasks):
     """Edits title, priority, or due date of an existing task."""
+    if not tasks:
+        print("No tasks available to edit.")
+        return
+    
+    print(f"{'ID':<4} | {'Title':<20} | {'Priority':<8} | {'Due Date':<12}")
+    print("-" * 50)
+    for t in tasks:
+        print(f"{t['id']:<4} | {t['title']:<20} | {t['priority']:<8} | {t['due_date']:<12}")
     try:
         task_id = int(input("\nEnter Task ID to edit: "))
         task = next((t for t in tasks if t["id"] == task_id), None)
@@ -119,17 +123,26 @@ def edit_task(tasks):
         new_title = input(f"New Title (press Enter to keep '{task['title']}'): ").strip()
         if new_title:
             task["title"] = new_title
+        while True:
+            new_p = input(f"New Priority Low/Medium/High (press Enter to keep '{task['priority']}'): ").strip().capitalize()
+            if new_p in ["Low", "Medium", "High"]:
+                task["priority"] = new_p
+            elif new_p == "":
+                break
+            else:
+                print("Invalid priority. Please enter Low, Medium, or High.")
+                continue
+            break
+        while True:
+            new_d = input(f"New Due Date YYYY-MM-DD (press Enter to keep '{task['due_date']}'): ").strip()
+            if new_d == "":
+                break
 
-        new_p = input(f"New Priority Low/Medium/High (press Enter to keep '{task['priority']}'): ").strip().capitalize()
-        if new_p in ["Low", "Medium", "High"]:
-            task["priority"] = new_p
-
-        new_d = input(f"New Due Date YYYY-MM-DD (press Enter to keep '{task['due_date']}'): ").strip()
-        if new_d:
             try:
                 task["due_date"] = datetime.strptime(new_d, "%Y-%m-%d").strftime("%Y-%m-%d")
+                break
             except ValueError:
-                print("Invalid date format. Date kept unchanged.")
+                    print("Invalid date format. Please enter a valid date in YYYY-MM-DD format.")
 
         save_tasks(tasks)
         print("Task updated successfully!")
@@ -138,6 +151,14 @@ def edit_task(tasks):
 
 def delete_task(tasks):
     """Removes a task by ID."""
+    if not tasks:
+        print("No tasks available to delete.")
+        return
+    
+    print(f"{'ID':<4} | {'Title':<20} | {'Priority':<8} | {'Due Date':<12}")
+    print("-" * 50)
+    for t in tasks:
+        print(f"{t['id']:<4} | {t['title']:<20} | {t['priority']:<8} | {t['due_date']:<12}")
     try:
         task_id = int(input("\nEnter Task ID to delete: "))
         for i, t in enumerate(tasks):
@@ -150,37 +171,35 @@ def delete_task(tasks):
     except ValueError:
         print("Please enter a valid number.")
 
-# ==========================================
-# MAIN APP LOOP
-# ==========================================
-
+#  main application loop (the menu)
 def main():
+    clear_terminal()
     tasks = load_tasks()
 
     while True:
         print("\n==========================")
         print("     TASK MANAGER MENU    ")
         print("==========================")
-        print("1. View Pending Tasks")
-        print("2. View Completed Tasks")
-        print("3. Add Task")
+        print("1. Add Task")
+        print("2. Edit Task")
+        print("3. View Pending Tasks    ")
         print("4. Mark Task as Completed")
-        print("5. Edit Task")
+        print("5. View Completed Tasks")
         print("6. Delete Task")
         print("7. Exit")
 
         choice = input("\nChoose an option (1-7): ").strip()
 
         if choice == "1":
-            view_tasks(tasks, show_completed=False)
-        elif choice == "2":
-            view_tasks(tasks, show_completed=True)
-        elif choice == "3":
             add_task(tasks)
+        elif choice == "2":
+            edit_task(tasks)
+        elif choice == "3":
+            view_tasks(tasks, show_completed=False)
         elif choice == "4":
             mark_completed(tasks)
         elif choice == "5":
-            edit_task(tasks)
+            view_tasks(tasks, show_completed=True)
         elif choice == "6":
             delete_task(tasks)
         elif choice == "7":

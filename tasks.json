@@ -2,8 +2,36 @@
     {
         "id": 1,
         "title": "read",
-        "priority": "Medium",
+        "priority": "High",
         "due_date": "N/A",
         "completed": true
+    },
+    {
+        "id": 2,
+        "title": "work",
+        "priority": "High",
+        "due_date": "2026-11-05",
+        "completed": false
+    },
+    {
+        "id": 3,
+        "title": "playing",
+        "priority": "Low",
+        "due_date": "2026-12-01",
+        "completed": false
+    },
+    {
+        "id": 4,
+        "title": "cook",
+        "priority": "High",
+        "due_date": "2026-11-03",
+        "completed": false
+    },
+    {
+        "id": 6,
+        "title": "walk",
+        "priority": "Medium",
+        "due_date": "2026-12-1",
+        "completed": false
     }
 ]
